@@ -78,6 +78,9 @@ void FontProvider::Shutdown()
 {
 	if (instance != NULL)
 	{
+		// The database registry survives shutdown; never leave it pointing at a deleted provider.
+		FontDatabase::RemoveFontProvider(instance);
+
 		for (FontFamilyMap::iterator i = instance->font_families.begin(); i != instance->font_families.end(); ++i)
 			delete (*i).second;
 
