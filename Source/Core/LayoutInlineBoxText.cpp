@@ -56,6 +56,18 @@ bool LayoutInlineBoxText::CanOverflow() const
 	return line_segmented;
 }
 
+void LayoutInlineBoxText::SetLeadingSpacing(float spacing)
+{
+	box.SetEdge(Box::MARGIN, Box::LEFT, spacing);
+}
+
+float LayoutInlineBoxText::GetTrailingSpacing() const
+{
+	if (line_contents.Empty() || line_contents[line_contents.Length() - 1] == '\n')
+		return 0;
+	return element->GetLetterSpacing();
+}
+
 // Flows the inline box's content into its parent line.
 LayoutInlineBox* LayoutInlineBoxText::FlowContent(bool first_box, float available_width, float right_spacing_width)
 {

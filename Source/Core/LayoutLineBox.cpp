@@ -52,6 +52,7 @@ LayoutLineBox::LayoutLineBox(LayoutBlockBox* _parent) : position(-1, -1), dimens
 	parent = _parent;
 
 	box_cursor = 0;
+	pending_letter_spacing = 0;
 	open_inline_box = NULL;
 
 	position_set = false;
@@ -204,6 +205,9 @@ LayoutInlineBox* LayoutLineBox::AddElement(Element* element, const Box& box)
 // Attempts to add a new inline box to this line.
 LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 {
+	LayoutInlineBoxText* text_box = dynamic_cast< LayoutInlineBoxText* >(box);
+	if (text_box != NULL)
+		text_box->SetLeadingSpacing(pending_letter_spacing);
 	// Set to true if we're flowing the first box (with content) on the line.
 	bool first_box = false;
 	// The spacing this element must leave on the right of the line, to account not only for its margins and padding,
@@ -298,6 +302,10 @@ LayoutInlineBox* LayoutLineBox::AddBox(LayoutInlineBox* box)
 	// Flow the box's content into the line.
 	LayoutInlineBox* overflow_box = open_inline_box->FlowContent(first_box, wrap_content ? dimensions.x - (open_inline_box->GetPosition().x + open_inline_box->GetBox().GetPosition(Box::CONTENT).x) : -1, right_spacing);
 	box_cursor += open_inline_box->GetBox().GetSize().x;
+	if (text_box != NULL)
+		pending_letter_spacing = text_box->GetTrailingSpacing();
+	else if (open_inline_box->GetBox().GetSize().x >= 0)
+		pending_letter_spacing = 0;
 
 	// If our box overflowed, then we'll close this line (as no more content will fit onto it) and tell our block box
 	// to make a new line.

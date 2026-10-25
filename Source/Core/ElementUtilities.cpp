@@ -186,13 +186,21 @@ int ElementUtilities::GetLineHeight(Element* element)
 }
 
 // Returns the width of a string rendered within the context of the given element.
-int ElementUtilities::GetStringWidth(Element* element, const WString& string)
+float ElementUtilities::GetStringWidth(Element* element, const WString& string, word prior_character)
 {
 	FontFaceHandle* font_face_handle = element->GetFontFaceHandle();
 	if (font_face_handle == NULL)
 		return 0;
 
-	return font_face_handle->GetStringWidth(string);
+	return font_face_handle->GetStringWidth(string, prior_character, element->GetLetterSpacing());
+}
+
+float ElementUtilities::GetStringPosition(Element* element, const WString& string, int index)
+{
+	float width = GetStringWidth(element, string.Substring(0, index));
+	if (index > 0 && index < (int) string.Length() && string[index] != '\n' && string[index] != '\r')
+		width += element->GetLetterSpacing();
+	return width;
 }
 
 void ElementUtilities::BindEventAttributes(Element* element)

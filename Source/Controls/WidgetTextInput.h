@@ -72,6 +72,8 @@ public:
 
 	/// Updates the cursor, if necessary.
 	void OnUpdate();
+	/// Reformat cached text, selection and caret after tracking/font changes.
+	void DirtyTextLayout();
 	/// Renders the cursor, if it is visible.
 	void OnRender();
 	/// Formats the widget's internal content.
@@ -191,6 +193,8 @@ private:
 
 	typedef std::vector< Line > LineList;
 	LineList lines;
+
+	bool text_layout_dirty;
 
 	int max_length;
 

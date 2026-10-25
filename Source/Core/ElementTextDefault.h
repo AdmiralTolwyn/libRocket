@@ -101,7 +101,7 @@ private:
 
 		WString text;
 		Vector2f position;
-		int width;
+		float width;
 	};
 
 	// Clears and regenerates all of the text's geometry.

@@ -258,6 +258,9 @@ public:
 	const Property *GetLineHeightProperty();
 	/// Returns 'text-align' property value from element's style or local cache.
 	int GetTextAlign();
+	/// Returns inherited letter spacing in render pixels, resolved against this
+	/// element's font size. Read live to avoid stale inherited style-cache values.
+	float GetLetterSpacing();
 	/// Returns 'text-transform' property value from element's style or local cache.
 	int GetTextTransform();
 	/// Returns 'vertical-align' property value from element's style or local cache.

@@ -535,6 +535,11 @@ const Property* Element::GetLocalProperty(const String& name)
 }
 
 // Resolves one of this element's style.
+float Element::GetLetterSpacing()
+{
+	return ResolveProperty("letter-spacing", 0);
+}
+
 float Element::ResolveProperty(const String& name, float base_value)
 {
 	return style->ResolveProperty(name, base_value);

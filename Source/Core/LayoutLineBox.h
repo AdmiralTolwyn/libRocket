@@ -110,6 +110,8 @@ private:
 
 	// The horizontal cursor. This is where the next inline box will be placed along the line.
 	float box_cursor;
+	// A gap is consumed by the next text run, never by the end of a line.
+	float pending_letter_spacing;
 
 	// The list of inline boxes in this line box. These line boxes may be parented to others in this list.
 	InlineBoxList inline_boxes;

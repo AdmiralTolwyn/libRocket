@@ -93,6 +93,10 @@ void InputTypeText::OnPropertyChange(const Core::PropertyNameList& changed_prope
 	if (changed_properties.find("color") != changed_properties.end() ||
 		changed_properties.find("background-color") != changed_properties.end())
 		widget->UpdateSelectionColours();
+
+	if (changed_properties.find("letter-spacing") != changed_properties.end() ||
+		changed_properties.find("font-size") != changed_properties.end())
+		widget->DirtyTextLayout();
 }
 
 // Checks for necessary functional changes in the control as a result of the event.

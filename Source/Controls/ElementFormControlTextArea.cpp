@@ -175,6 +175,10 @@ void ElementFormControlTextArea::OnPropertyChange(const Core::PropertyNameList& 
 	if (changed_properties.find("color") != changed_properties.end() ||
 		changed_properties.find("background-color") != changed_properties.end())
 		widget->UpdateSelectionColours();
+
+	if (changed_properties.find("letter-spacing") != changed_properties.end() ||
+		changed_properties.find("font-size") != changed_properties.end())
+		widget->DirtyTextLayout();
 }
 
 // Returns the text content of the element.

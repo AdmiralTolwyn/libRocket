@@ -161,7 +161,7 @@ bool ElementTextDefault::GenerateToken(float& token_width, int line_begin)
 	WString token;
 
 	BuildToken(token, token_begin, text.CString() + text.Length(), true, collapse_white_space, break_at_endline, GetTextTransform());
-	token_width = (float) font_face_handle->GetStringWidth(token, 0);
+	token_width = (float) font_face_handle->GetStringWidth(token, 0, GetLetterSpacing());
 
 	return LastToken(token_begin, text.CString() + text.Length(), collapse_white_space, break_at_endline);
 }
@@ -209,7 +209,7 @@ bool ElementTextDefault::GenerateLine(WString& line, int& line_length, float& li
 
 		// Generate the next token and determine its pixel-length.
 		bool break_line = BuildToken(token, next_token_begin, string_end, line.Empty() && trim_whitespace_prefix, collapse_white_space, break_at_endline, text_transform_property);
-		int token_width = font_face_handle->GetStringWidth(token, line.Empty() ? 0 : line[line.Length() - 1]);
+		float token_width = font_face_handle->GetStringWidth(token, line.Empty() ? 0 : line[line.Length() - 1], GetLetterSpacing());
 
 		// If we're breaking to fit a line box, check if the token can fit on the line before we add it.
 		if (break_at_line)
@@ -326,6 +326,12 @@ void ElementTextDefault::OnPropertyChange(const PropertyNameList& changed_proper
 		}
 	}
 
+	if (changed_properties.find("letter-spacing") != changed_properties.end())
+	{
+		geometry_dirty = true;
+		font_face_changed = true;
+	}
+
 	if (font_face_changed)
 	{
 		// We have to let our document know we need to be regenerated.
@@ -406,7 +412,7 @@ void ElementTextDefault::GenerateGeometry(FontFaceHandle* font_face_handle)
 
 void ElementTextDefault::GenerateGeometry(FontFaceHandle* font_face_handle, Line& line)
 {
-	line.width = font_face_handle->GenerateString(geometry, line.text, line.position, colour, font_configuration);
+	line.width = font_face_handle->GenerateString(geometry, line.text, line.position, colour, font_configuration, GetLetterSpacing());
 	for (size_t i = 0; i < geometry.size(); ++i)
 		geometry[i].SetHostElement(this);
 }

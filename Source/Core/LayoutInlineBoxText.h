@@ -51,6 +51,12 @@ public:
 	/// @return True if this box can overflow, false otherwise.
 	virtual bool CanOverflow() const;
 
+	/// Reserve the preceding run's final glyph gap only while on the same line.
+	void SetLeadingSpacing(float spacing);
+	/// Returns the inter-run gap following the last rendered glyph, or zero
+	/// when this run terminates the line or contains no glyphs.
+	float GetTrailingSpacing() const;
+
 	/// Flows the inline box's content into its parent line.
 	/// @param[in] first_box True if this box is the first box containing content to be flowed into this line.
 	/// @param available_width[in] The width available for flowing this box's content. This is measured from the left side of this box's content area.

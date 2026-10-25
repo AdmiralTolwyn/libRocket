@@ -40,6 +40,7 @@ const float CURSOR_BLINK_TIME = 0.7f;
 WidgetTextInput::WidgetTextInput(ElementFormControl* _parent) : internal_dimensions(0, 0), scroll_offset(0, 0), selection_geometry(_parent), cursor_position(0, 0), cursor_size(0, 0), cursor_geometry(_parent)
 {
 	keyboard_showed = false;
+	text_layout_dirty = false;
 	
 	parent = _parent;
 	parent->SetProperty("white-space", "pre");
@@ -175,9 +176,22 @@ void WidgetTextInput::UpdateSelectionColours()
 		selection_colour = Rocket::Core::Colourb(255 - colour.red, 255 - colour.green, 255 - colour.blue, colour.alpha);
 }
 
-// Updates the cursor, if necessary.
+// Defer text rebuilding until inherited styles have reached both text nodes.
+void WidgetTextInput::DirtyTextLayout()
+{
+	text_layout_dirty = true;
+}
+
+// Updates cached text and the cursor, if necessary.
 void WidgetTextInput::OnUpdate()
 {
+	if (text_layout_dirty)
+	{
+		text_layout_dirty = false;
+		FormatElement();
+		UpdateRelativeCursor();
+		UpdateCursorPosition();
+	}
 	if (cursor_timer > 0)
 	{
 		float current_time = Core::GetSystemInterface()->GetElapsedTime();
@@ -611,7 +625,7 @@ int WidgetTextInput::CalculateCharacterIndex(int line_index, float position)
 
 	while (character_index < lines[line_index].content_length)
 	{
-		float next_line_width = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[line_index].content.Substring(0, character_index));
+		float next_line_width = (float) Core::ElementUtilities::GetStringPosition(text_element, lines[line_index].content, character_index);
 		if (next_line_width > position)
 		{
 			if (position - line_width < next_line_width - position)
@@ -790,7 +804,7 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 			{
 				line.content += orphan;
 				line.content_length += (int) orphan.Length();
-				line_width += Core::ElementUtilities::GetStringWidth(text_element, orphan);
+				line_width = Core::ElementUtilities::GetStringWidth(text_element, line.content);
 			}
 		}
 
@@ -806,7 +820,7 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 		if (!pre_selection.Empty())
 		{
 			text_element->AddLine(line_position, pre_selection);
-			line_position.x += Core::ElementUtilities::GetStringWidth(text_element, pre_selection);
+			line_position.x = Core::ElementUtilities::GetStringPosition(text_element, line.content, (int) pre_selection.Length());
 		}
 
 		// If there is any selected text on this line, place it in the selected text element and
@@ -814,7 +828,7 @@ Rocket::Core::Vector2f WidgetTextInput::FormatText()
 		if (!selection.Empty())
 		{
 			selected_text_element->AddLine(line_position, selection);
-			int selection_width = Core::ElementUtilities::GetStringWidth(selected_text_element, selection);
+			const float selection_width = Core::ElementUtilities::GetStringPosition(selected_text_element, selection + post_selection, (int) selection.Length());
 
 			selection_vertices.resize(selection_vertices.size() + 4);
 			selection_indices.resize(selection_indices.size() + 6);
@@ -883,7 +897,7 @@ void WidgetTextInput::UpdateCursorPosition()
 	if (text_element->GetFontFaceHandle() == NULL)
 		return;
 
-	cursor_position.x = (float) Core::ElementUtilities::GetStringWidth(text_element, lines[cursor_line_index].content.Substring(0, cursor_character_index));
+	cursor_position.x = (float) Core::ElementUtilities::GetStringPosition(text_element, lines[cursor_line_index].content, cursor_character_index);
 	cursor_position.y = -1 + cursor_line_index * (float) Core::ElementUtilities::GetLineHeight(text_element);
 }
 

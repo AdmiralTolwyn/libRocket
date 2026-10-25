@@ -77,8 +77,9 @@ public:
 	/// Returns the width a string will take up if rendered with this handle.
 	/// @param[in] string The string to measure.
 	/// @param[in] prior_character The optionally-specified character that immediately precedes the string. This may have an impact on the string width due to kerning.
+	/// @param[in] letter_spacing Extra render pixels between glyphs; no trailing gap.
 	/// @return The width, in pixels, this string will occupy if rendered with this handle.
-	virtual int GetStringWidth(const WString& string, word prior_character = 0) const = 0;
+	virtual float GetStringWidth(const WString& string, word prior_character = 0, float letter_spacing = 0) const = 0;
 
 	/// Generates, if required, the layer configuration for a given array of font effects.
 	/// @param[in] font_effects The list of font effects to generate the configuration for.
@@ -96,15 +97,16 @@ public:
 	/// @param[in] string The string to render.
 	/// @param[in] position The position of the baseline of the first character to render.
 	/// @param[in] colour The colour to render the text.
+	/// @param[in] letter_spacing Extra render pixels between glyphs, matching measurement.
 	/// @return The width, in pixels, of the string geometry.
-	virtual int GenerateString(GeometryList& geometry, const WString& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0) const = 0;
+	virtual float GenerateString(GeometryList& geometry, const WString& string, const Vector2f& position, const Colourb& colour, int layer_configuration = 0, float letter_spacing = 0) const = 0;
 	/// Generates the geometry required to render a line above, below or through a line of text.
 	/// @param[out] geometry The geometry to append the newly created geometry into.
 	/// @param[in] position The position of the baseline of the lined text.
 	/// @param[in] width The width of the string to line.
 	/// @param[in] height The height to render the line at.
 	/// @param[in] colour The colour to draw the line in.
-	virtual void GenerateLine(Geometry* geometry, const Vector2f& position, int width, Font::Line height, const Colourb& colour) const = 0;
+	virtual void GenerateLine(Geometry* geometry, const Vector2f& position, float width, Font::Line height, const Colourb& colour) const = 0;
 
 	/// Returns the font face's raw charset (the charset range as a string).
 	/// @return The font face's charset.
@@ -118,6 +120,11 @@ protected:
 	virtual void OnReferenceDeactivate();
 	FontFaceLayer* GenerateLayer(FontEffect* font_effect);
 	virtual int GetKerning(word lhs, word rhs) const = 0;
+
+	/// Advances a glyph cursor and returns its origin. Tracking belongs between
+	/// glyphs, so token continuations can supply their preceding character and
+	/// measurement and every font provider use the same no-trailing-gap rule.
+	float AdvanceGlyph(float& cursor, word& prior_character, word character, float letter_spacing) const;
 
 	typedef std::vector< int > GlyphKerningList;
 	typedef std::vector< GlyphKerningList > FontKerningList;

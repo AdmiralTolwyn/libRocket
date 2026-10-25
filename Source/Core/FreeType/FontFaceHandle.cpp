@@ -99,9 +99,9 @@ bool FontFaceHandle::Initialise(FT_Face ft_face, const String& _charset, int _si
 }
 
 // Returns the width a string will take up if rendered with this handle.
-int FontFaceHandle::GetStringWidth(const WString& string, word prior_character) const
+float FontFaceHandle::GetStringWidth(const WString& string, word prior_character, float letter_spacing) const
 {
-	int width = 0;
+	float width = 0;
 
 	for (size_t i = 0; i < string.Length(); i++)
 	{
@@ -109,15 +109,8 @@ int FontFaceHandle::GetStringWidth(const WString& string, word prior_character) 
 
 		if (character_code >= glyphs.size())
 			continue;
-		const FontGlyph &glyph = glyphs[character_code];
 
-		// Adjust the cursor for the kerning between this character and the previous one.
-		if (prior_character != 0)
-			width += GetKerning(prior_character, string[i]);
-		// Adjust the cursor for this character's advance.
-		width += glyph.advance;
-
-		prior_character = character_code;
+		AdvanceGlyph(width, prior_character, character_code, letter_spacing);
 	}
 
 	return width;
@@ -205,10 +198,10 @@ bool FontFaceHandle::GenerateLayerTexture(const byte*& texture_data, Vector2i& t
 }
 
 // Generates the geometry required to render a single line of text.
-int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string, const Vector2f& position, const Colourb& colour, int layer_configuration_index) const
+float FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string, const Vector2f& position, const Colourb& colour, int layer_configuration_index, float letter_spacing) const
 {
 	int geometry_index = 0;
-	int line_width = 0;
+	float line_width = 0;
 
 	ROCKET_ASSERT(layer_configuration_index >= 0);
 	ROCKET_ASSERT(layer_configuration_index < (int) layer_configurations.size());
@@ -243,16 +236,8 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string
 		{
 			if (*string_iterator >= glyphs.size())
 				continue;
-			const FontGlyph &glyph = glyphs[*string_iterator];
-
-			// Adjust the cursor for the kerning between this character and the previous one.
-			if (prior_character != 0)
-				line_width += GetKerning(prior_character, *string_iterator);
-
-			layer->GenerateGeometry(&geometry[geometry_index], *string_iterator, Vector2f(position.x + line_width, position.y), layer_colour);
-
-			line_width += glyph.advance;
-			prior_character = *string_iterator;
+			const float glyph_position = AdvanceGlyph(line_width, prior_character, *string_iterator, letter_spacing);
+			layer->GenerateGeometry(&geometry[geometry_index], *string_iterator, Vector2f(position.x + glyph_position, position.y), layer_colour);
 		}
 
 		geometry_index += layer->GetNumTextures();
@@ -265,7 +250,7 @@ int FontFaceHandle::GenerateString(GeometryList& geometry, const WString& string
 }
 
 // Generates the geometry required to render a line above, below or through a line of text.
-void FontFaceHandle::GenerateLine(Geometry* geometry, const Vector2f& position, int width, Font::Line height, const Colourb& colour) const
+void FontFaceHandle::GenerateLine(Geometry* geometry, const Vector2f& position, float width, Font::Line height, const Colourb& colour) const
 {
 	std::vector< Vertex >& line_vertices = geometry->GetVertices();
 	std::vector< int >& line_indices = geometry->GetIndices();

@@ -93,7 +93,10 @@ public:
 	/// @param[in] element The element to measure the string from.
 	/// @param[in] string The string to measure.
 	/// @return The string width, in pixels.
-	static int GetStringWidth(Element* element, const WString& string);
+	static float GetStringWidth(Element* element, const WString& string, word prior_character = 0);
+	/// Returns a caret/selection boundary in a line, including the gap before
+	/// the next glyph, but never a trailing gap after the final glyph.
+	static float GetStringPosition(Element* element, const WString& string, int index);
 
 	/// Bind and instance all event attributes on the given element onto the element
 	/// @param element Element to bind events on
